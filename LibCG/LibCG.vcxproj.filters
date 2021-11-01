@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="RayTrace">
+      <UniqueIdentifier>{81420fc4-f8bb-499f-8464-7894bb49ff93}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Util.cpp" />
+    <ClCompile Include="RayTrace\Bvh.cpp">
+      <Filter>RayTrace</Filter>
+    </ClCompile>
+    <ClCompile Include="RayTrace\RayIntersection.cpp">
+      <Filter>RayTrace</Filter>
+    </ClCompile>
+    <ClCompile Include="RayTrace\RayTracer.cpp">
+      <Filter>RayTrace</Filter>
+    </ClCompile>
+    <ClCompile Include="RayTrace\Sampling.cpp">
+      <Filter>RayTrace</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderGraph.cpp" />
+    <ClCompile Include="Canvas.cpp" />
+    <ClCompile Include="ModelLoader.cpp" />
+    <ClCompile Include="RayTrace\Primitive.cpp">
+      <Filter>RayTrace</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Util.h" />
+    <ClInclude Include="RayTrace\Bvh.h">
+      <Filter>RayTrace</Filter>
+    </ClInclude>
+    <ClInclude Include="RayTrace\RayIntersection.h">
+      <Filter>RayTrace</Filter>
+    </ClInclude>
+    <ClInclude Include="RayTrace\RayTracer.h">
+      <Filter>RayTrace</Filter>
+    </ClInclude>
+    <ClInclude Include="RayTrace\Sampling.h">
+      <Filter>RayTrace</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderGraph.h" />
+    <ClInclude Include="KDMath.h" />
+    <ClInclude Include="Canvas.h" />
+    <ClInclude Include="ModelLoader.h" />
+    <ClInclude Include="RayTrace\Primitive.h">
+      <Filter>RayTrace</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

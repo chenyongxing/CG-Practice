@@ -1,0 +1,14 @@
+添加特性
+[conv.rs]
+fn map_device_descriptor
+	features |= wgt::Features::POLYGON_MODE_LINE;
+	//features |= wgt::Features::POLYGON_MODE_POINT;
+
+补充多边形填充模式
+[device.rs]
+            polygon_mode: match descriptor.primitive.polygonMode {
+            	native::WGPUPolygonMode_Fill => wgt::PolygonMode::Fill,
+                native::WGPUPolygonMode_Line => wgt::PolygonMode::Line,
+                native::WGPUPolygonMode_Point => wgt::PolygonMode::Point,
+                _ => panic!("Polygon mode not provided"),
+            },
