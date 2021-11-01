@@ -181,7 +181,7 @@ int main()
 			auto pipeline = std::make_shared<RasterPipeline>();
 			//pipeline->primitiveTopology = WGPUPrimitiveTopology_PointList;
 			//pipeline->cullMode = WGPUCullMode_Front;
-			pipeline->polygonMode = WGPUPolygonMode_Line;
+			//pipeline->polygonMode = WGPUPolygonMode_Line;
 			pipeline->shaderFromString(SHADER_SRC);
 			pipeline->bindResource({ { WGPUBufferBindingType_Uniform, WGPUShaderStage_Vertex, 0, uniformBuffer, sizeof(float) * 16 } });
 			pipeline->vertexInputLayout(20, { { WGPUVertexFormat_Float32x2, 0, 0 }, { WGPUVertexFormat_Float32x3, 8, 1} });
