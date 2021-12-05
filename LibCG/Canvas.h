@@ -2,6 +2,7 @@
 
 #include "KDMath.h"
 #include <vector>
+#include <map>
 
 enum class LineCap
 {
@@ -29,6 +30,7 @@ enum class LineJoin
 //	Evenodd
 //};
 
+class FontManager;
 class Canvas
 {
 public:
@@ -67,6 +69,8 @@ public:
 	void fill();
 
 	void stroke();
+
+	void text(const std::u16string& u16str, float x, float y);
 
 	/**
 	* @param a Horizontal scaling
@@ -110,4 +114,29 @@ private:
 	void triangulateEarClip(const std::vector<vec2<f32>>& points, std::vector<vec2<f32>>& triangles);
 
 	void triangulateStroke(PathState& path);
+};
+
+#include "stb_truetype.h"
+
+class FontManager
+{
+public:
+	struct FontInfo
+	{
+		std::string name;
+		size_t fileSize = 0;
+		unsigned char* fileBuffer = nullptr;
+		stbtt_fontinfo stbInfo{ 0 };
+
+		std::vector<int> fontSizes;
+		std::vector<unsigned char*> atlases;
+	};
+
+	bool addFont(const char* filename, int fontsize);
+	void release();
+
+	std::vector<vec4<f32>> addChars(const std::string& font, const std::u16string& u16str);
+
+private:
+	std::map<std::string, FontInfo*> fonts;
 };

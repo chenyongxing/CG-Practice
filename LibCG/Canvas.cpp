@@ -3,6 +3,9 @@
 #include <list>
 #include <algorithm>
 
+#define STB_TRUETYPE_IMPLEMENTATION
+#include "stb_truetype.h"
+
 void Canvas::beginPath()
 {
 	nextNewPath = false;
@@ -136,6 +139,10 @@ void Canvas::stroke()
 	path.lineWidth = lineWidth;
 	path.lineCap = lineCap;
 	path.lineJoin = lineJoin;
+}
+
+void Canvas::text(const std::u16string& u16str, float x, float y)
+{
 }
 
 void Canvas::transform(float a, float b, float c, float d, float e, float f)
@@ -496,4 +503,118 @@ void Canvas::triangulateStroke(PathState& path)
 		triangles.push_back(vertices[i]);
 		triangles.push_back(vertices[i + 1]);
 	}
+}
+
+bool FontManager::addFont(const char* filename, int fontsize)
+{
+	FILE* fontFile = fopen(filename, "rb");
+	if (fontFile == NULL) return false;
+
+	fseek(fontFile, 0, SEEK_END);
+	size_t fileSize = ftell(fontFile);
+	fseek(fontFile, 0, SEEK_SET);
+
+	auto fileBuffer = new unsigned char[fileSize];
+	fread(fileBuffer, fileSize, 1, fontFile);
+	fclose(fontFile);
+
+	stbtt_fontinfo stbinfo;
+	if (!stbtt_InitFont(&stbinfo, fileBuffer, 0))
+	{
+		delete[] fileBuffer;
+		return false;
+	}
+
+	FontInfo* fontInfo = new FontInfo();
+	fontInfo->name = filename;
+	fontInfo->fileSize = fileSize;
+	fontInfo->fileBuffer = fileBuffer;
+	fontInfo->stbInfo = stbinfo;
+	fontInfo->fontSizes.push_back(fontsize);
+	fonts[fontInfo->name] = fontInfo;
+	return true;
+}
+
+void FontManager::release()
+{
+}
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+std::vector<vec4<f32>> FontManager::addChars(const std::string& font, const std::u16string& u16str)
+{
+	FontInfo* fontInfo = fonts[font];
+	size_t chars_count = u16str.size();
+
+	static int font_atlas_w = 128;
+	static int font_atlas_h = 128;
+	unsigned char* font_atlas = (unsigned char*)calloc(font_atlas_w * font_atlas_h, sizeof(unsigned char));
+	memset(font_atlas, 0, sizeof(unsigned char) * font_atlas_w * font_atlas_h);
+
+	stbtt_fontinfo& info = fontInfo->stbInfo;
+	int fontsize = fontInfo->fontSizes[0];
+	float scale = stbtt_ScaleForPixelHeight(&info, fontsize);
+
+	stbrp_rect* rects = (stbrp_rect*)malloc(chars_count * sizeof(stbrp_rect));
+	for (int i = 0; i < chars_count; i++)
+	{
+		int codepoint = u16str[i];
+		stbrp_rect& rect = rects[i];
+		int x0, y0, x1, y1;
+		stbtt_GetCodepointBitmapBox(&info, codepoint, scale, scale, &x0, &y0, &x1, &y1);
+		rects[i].w = x1 - x0;
+		rects[i].h = y1 - y0;
+	}
+
+	stbrp_context* context = (stbrp_context*)malloc(sizeof(stbrp_context));
+	stbrp_node* nodes = (stbrp_node*)malloc(sizeof(chars_count * sizeof(stbrp_node)));
+	stbrp_init_target(context, font_atlas_w, font_atlas_h, nodes, chars_count);
+	stbrp_pack_rects(context, rects, chars_count);
+	for (int i = 0; i < chars_count; i++)
+	{
+		stbrp_rect& rect = rects[i];
+		if (rect.was_packed)
+		{
+			int codepoint = u16str[i];
+			unsigned char* bitmap = font_atlas + rect.x + rect.y * font_atlas_w;
+			stbtt_MakeCodepointBitmap(&info, bitmap, rect.w, rect.h, font_atlas_w, scale, scale, codepoint);
+		}
+	}
+
+	stbi_write_png("font_bitmap/font_atlas.png", font_atlas_w, font_atlas_h, 1, font_atlas, font_atlas_w);
+
+	std::vector<vec4<f32>> vertices;
+	int x = 0;
+	int ascent, descent, lineGap;
+	stbtt_GetFontVMetrics(&info, &ascent, &descent, &lineGap);
+	ascent = roundf(ascent * scale);
+	descent = roundf(descent * scale);
+	for (int i = 0; i < chars_count; i++)
+	{
+		int codepoint = u16str[i];
+		stbrp_rect& rect = rects[i];
+
+		int advanceWidth, leftSideBearing;
+		stbtt_GetCodepointHMetrics(&info, codepoint, &advanceWidth, &leftSideBearing);
+		advanceWidth = roundf(advanceWidth * scale);
+		leftSideBearing = roundf(leftSideBearing * scale);
+		x += leftSideBearing;
+
+		int x0, y0, x1, y1;
+		stbtt_GetCodepointBitmapBox(&info, codepoint, scale, scale, &x0, &y0, &x1, &y1);
+
+		vec4<f32> path;
+		path.x = x;
+		path.y = ascent + y0;
+		path.z = rect.w;
+		path.w = rect.h;
+
+		x += advanceWidth;
+		int kern = stbtt_GetCodepointKernAdvance(&info, codepoint, u16str[i + 1]);
+		kern = roundf(kern * scale);
+		x += kern;
+
+		vertices.push_back(path);
+	}
+	return vertices;
 }

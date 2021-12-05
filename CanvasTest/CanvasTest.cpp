@@ -36,6 +36,22 @@ const char* SHADER_SRC = R"(
 
 Canvas canvas;
 
+void canvasTestFont()
+{
+	
+	canvas.transform(1, 0, 0, 1, 100, 100);
+	canvas.fillStyle = 0xFF0000FF;
+
+	FontManager fontManager;
+	fontManager.addFont("PingFangSC.ttf", 40);
+	auto vertices = fontManager.addChars("PingFangSC.ttf", u"你好，世界。我是中文，按时间都");
+	for (auto& rect : vertices)
+	{
+		canvas.beginPath();
+		canvas.rect(rect.x, rect.y, rect.z, rect.w);
+		canvas.fill();
+	}
+}
 void canvasTestFill()
 {
 	canvas.beginPath();
@@ -142,8 +158,9 @@ int main()
 	UpdateWindow(hWnd);
 
 	/////////////////////////vector 2d graph triangulate////////////////////////////
-	canvasTestFill();
-	canvasTestStroke();
+	canvasTestFont();
+	//canvasTestFill();
+	//canvasTestStroke();
 	std::vector<float> vertices;
 	canvas.triangulate(&vertices);
 	uint32_t verticesSize = uint32_t(sizeof(float) * vertices.size());
